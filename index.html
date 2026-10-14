@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="どこに行ったかは記録しない。どれだけ離れたかだけを記録する。2地点間の直線距離を端末内で計算・保存します。">
+  <meta name="color-scheme" content="light">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" defer></script>
+  <title>直線距離ログ。</title>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="app-header">
+      <h1>直線距離ログ。</h1>
+      <button id="settings-open" class="icon-button" type="button" aria-label="設定・アプリについて" title="設定・アプリについて">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Z"/><path d="M19.5 13.6a1.9 1.9 0 0 0 .4-2.8l-1.1-1.1.1-1.5-2.5-1.5-1.2.8a8 8 0 0 0-1.4-.8l-.4-1.5h-2.8l-.4 1.5a8 8 0 0 0-1.4.8l-1.2-.8-2.5 1.5.1 1.5-1.1 1.1a1.9 1.9 0 0 0 .4 2.8l.7.5-.1 1.5 2.5 1.5 1.2-.8c.4.3.9.6 1.4.8l.4 1.5h2.8l.4-1.5c.5-.2 1-.5 1.4-.8l1.2.8 2.5-1.5-.1-1.5Z" transform="translate(0 1)"/></svg>
+      </button>
+    </header>
+
+    <section class="total-section" aria-labelledby="total-heading">
+      <h2 id="total-heading">これまでの累計直線距離</h2>
+      <p id="total-distance" class="total-distance" aria-live="polite">0 m</p>
+    </section>
+
+    <section class="measurement-section" aria-label="直線距離の計測">
+      <p id="measurement-state" class="measurement-state" aria-live="polite">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s7-6 7-12a7 7 0 0 0-14 0c0 6 7 12 7 12Z"/><circle cx="12" cy="9" r="2.5"/></svg>
+        <span id="measurement-state-text">開始地点は未記録です</span>
+      </p>
+      <button id="start-button" class="action-button primary" type="button">開始地点を記録</button>
+      <button id="end-button" class="action-button secondary" type="button" disabled>終了地点を記録</button>
+      <p id="status-message" class="status-message" role="status" aria-live="polite" hidden></p>
+    </section>
+
+    <section class="history-section" aria-labelledby="history-heading">
+      <div class="section-heading-row">
+        <h2 id="history-heading">過去の記録</h2>
+        <span class="section-note">最新10件</span>
+      </div>
+      <p id="history-empty" class="history-empty">まだ記録はありません。</p>
+      <ol id="history-list" class="history-list" hidden></ol>
+    </section>
+    <footer class="app-footer">どこに行ったかは記録しない。どれだけ離れたかだけを記録する。</footer>
+  </main>
+
+  <div id="settings-overlay" class="overlay" hidden>
+    <section class="settings-dialog" role="dialog" aria-modal="true" aria-labelledby="settings-title" tabindex="-1">
+      <header class="dialog-header">
+        <h2 id="settings-title">設定・アプリについて</h2>
+        <button id="settings-close" class="icon-button close-button" type="button" aria-label="閉じる">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+      <div class="dialog-body">
+        <details class="settings-block" id="transfer-block">
+          <summary>データの引き継ぎ <span class="summary-hint">開く</span></summary>
+          <div class="settings-block-inner">
+            <p>累計直線距離と最新10件の記録を、コードで別の端末に移せます。位置情報の座標は含まれません。</p>
+            <h3>古い端末：コードを発行</h3>
+            <button id="export-button" class="small-button" type="button">引き継ぎコードを発行</button>
+            <label class="field-label" for="export-code">発行したコード</label>
+            <textarea id="export-code" class="code-field" readonly rows="3" placeholder="発行すると、ここにコードが表示されます。" spellcheck="false"></textarea>
+            <button id="copy-button" class="small-button outline" type="button" disabled>コードをコピー</button>
+            <h3>新しい端末：コードを入力</h3>
+            <label class="field-label" for="import-code">引き継ぎコードを貼り付け</label>
+            <textarea id="import-code" class="code-field" rows="3" placeholder="ここに引き継ぎコードを貼り付け" autocapitalize="off" autocomplete="off" spellcheck="false"></textarea>
+            <button id="import-button" class="small-button" type="button">コードから復元する</button>
+            <p id="transfer-message" class="transfer-message" role="status" aria-live="polite" hidden></p>
+            <p class="fine-print">復元すると、この端末の累計距離と履歴が上書きされます。計測中の開始地点も消去されます。コードには日時と距離が含まれるため、他人には公開しないでください。</p>
+          </div>
+        </details>
+
+        <div class="settings-info">
+          <h3>プライバシーについて</h3>
+          <p>開始地点と終了地点の緯度・経度を取得し、端末内で直線距離を計算します。座標を画面に表示せず、アプリから外部サーバーへ送信しません。</p>
+          <p>開始地点の座標は、電源を切っても計測を続けられるように端末内へ一時保存し、計測終了時に削除します。履歴には日時と直線距離のみを保存します。</p>
+          <p>なお、ブラウザ・OSの位置情報サービスや、Webページへの通常のアクセスには通信が発生する場合があります。</p>
+        </div>
+
+        <div class="settings-info">
+          <h3>計測について</h3>
+          <p>開始地点と終了地点の<strong>直線距離</strong>を計算します。実際に移動した道のりとは異なり、出発地点に戻ると0mに近くなります。</p>
+          <p>10m以下は記録しません。GPS・Wi-Fi・周辺環境などによる測位誤差があるため、同じ地点を計測しても毎回同じ距離になるとは限りません。</p>
+          <p>開始後はスマートフォンの画面を消したり、電源を切ったりしても構いません。端末内のサイトデータを削除すると記録が失われる可能性があります。</p>
+        </div>
+        <p class="dialog-footer">直線距離ログ。 ver.1.0</p>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
