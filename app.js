@@ -25,6 +25,8 @@
   let busy = false;
   let storageBroken = false;
   let returnFocusTo = null;
+  // Display-only choice: never rounds or changes the values saved in meters.
+  let distanceUnit = "m";
 
   function isDate(s) {
     return typeof s === "string" && /^\d{4}-\d{2}-\d{2}T/.test(s) && Number.isFinite(Date.parse(s));
@@ -63,8 +65,12 @@
     render();
   }
   function formatDistance(meters) {
-    if (meters < 1000) return `${Math.round(meters).toLocaleString("ja-JP")} m`;
-    return `${(meters / 1000).toLocaleString("ja-JP", { maximumFractionDigits: 2, minimumFractionDigits: 2 })} km`;
+    if (distanceUnit === "m") return `${Math.round(meters).toLocaleString("ja-JP")} m`;
+    return `${(meters / 1000).toLocaleString("ja-JP", { maximumFractionDigits: 3 })} km`;
+  }
+  function toggleDistanceUnit() {
+    distanceUnit = distanceUnit === "m" ? "km" : "m";
+    render();
   }
   function dateTime(s) {
     return new Date(s).toLocaleString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false });
@@ -83,7 +89,9 @@
     transferMessage.className = `transfer-message${error ? " error" : ""}`;
   }
   function render() {
-    el("total-distance").textContent = formatDistance(state.totalMeters);
+    const totalDistance = el("total-distance");
+    totalDistance.textContent = formatDistance(state.totalMeters);
+    totalDistance.setAttribute("aria-label", `累計直線距離 ${formatDistance(state.totalMeters)}。タップして${distanceUnit === "m" ? "km" : "m"}表示に切り替え`);
     const pending = !!state.pending;
     el("measurement-state").classList.toggle("active", pending);
     el("measurement-state-text").textContent = pending ? "開始地点を記録済みです" : "開始地点は未記録です";
@@ -104,9 +112,11 @@
       const date = document.createElement("span");
       date.className = "history-item-date";
       date.textContent = new Date(rec.endAt).toLocaleDateString("ja-JP");
-      const distance = document.createElement("strong");
+      const distance = document.createElement("button");
+      distance.type = "button";
       distance.className = "history-item-distance";
       distance.textContent = formatDistance(rec.meters);
+      distance.setAttribute("aria-label", `直線距離 ${formatDistance(rec.meters)}。タップして${distanceUnit === "m" ? "km" : "m"}表示に切り替え`);
       head.append(date, distance);
       const period = document.createElement("div");
       period.className = "history-item-period";
@@ -216,6 +226,10 @@
     document.body.style.overflow = "";
     if (returnFocusTo && returnFocusTo.focus) returnFocusTo.focus();
   }
+  el("total-distance").addEventListener("click", toggleDistanceUnit);
+  el("history-list").addEventListener("click", (event) => {
+    if (event.target.closest(".history-item-distance")) toggleDistanceUnit();
+  });
   startButton.addEventListener("click", () => measure("start"));
   endButton.addEventListener("click", () => measure("end"));
   settingsButton.addEventListener("click", openSettings);

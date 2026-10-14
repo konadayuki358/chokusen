@@ -1,5 +1,5 @@
 "use strict";
-const CACHE_NAME = "chokusen-kyori-log-v1-20261014";
+const CACHE_NAME = "chokusen-kyori-log-v1-20261014-unit-toggle";
 const FILES = [
   "./",
   "./index.html",

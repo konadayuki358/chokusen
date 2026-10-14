@@ -18,13 +18,14 @@
     <header class="app-header">
       <h1>直線距離ログ。</h1>
       <button id="settings-open" class="icon-button" type="button" aria-label="設定・アプリについて" title="設定・アプリについて">
-        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Z"/><path d="M19.5 13.6a1.9 1.9 0 0 0 .4-2.8l-1.1-1.1.1-1.5-2.5-1.5-1.2.8a8 8 0 0 0-1.4-.8l-.4-1.5h-2.8l-.4 1.5a8 8 0 0 0-1.4.8l-1.2-.8-2.5 1.5.1 1.5-1.1 1.1a1.9 1.9 0 0 0 .4 2.8l.7.5-.1 1.5 2.5 1.5 1.2-.8c.4.3.9.6 1.4.8l.4 1.5h2.8l.4-1.5c.5-.2 1-.5 1.4-.8l1.2.8 2.5-1.5-.1-1.5Z" transform="translate(0 1)"/></svg>
+        <span class="settings-gear" aria-hidden="true">⚙</span>
       </button>
     </header>
 
     <section class="total-section" aria-labelledby="total-heading">
       <h2 id="total-heading">これまでの累計直線距離</h2>
-      <p id="total-distance" class="total-distance" aria-live="polite">0 m</p>
+      <button id="total-distance" class="total-distance distance-toggle" type="button" aria-label="累計直線距離 0 m。タップしてkm表示に切り替え">0 m</button>
+      <p class="distance-unit-hint">数字をタップで m ⇄ km</p>
     </section>
 
     <section class="measurement-section" aria-label="直線距離の計測">
